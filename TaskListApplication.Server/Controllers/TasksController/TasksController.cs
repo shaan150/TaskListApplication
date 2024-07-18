@@ -1,17 +1,15 @@
 ﻿// Controllers/TasksController.cs
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using TaskListApplication.Server.Data;
 using TaskListApplication.Server.DTOs;
-using static Retriever = TaskListApplication.Server.Controllers.TasksController.TasksControllerRetriever;
-using static Creator = TaskListApplication.Server.Controllers.TasksController.TasksControllerCreator;
-using static Updater = TaskListApplication.Server.Controllers.TasksController.TasksControllerUpdater;
-using static Deleter = TaskListApplication.Server.Controllers.TasksController.TasksControllerDeleter;
-using TaskListApplication.Server.Controllers.Utilities;
+using static TaskListApplication.Server.Controllers.TasksController.TasksControllerRetriever;
+using static TaskListApplication.Server.Controllers.TasksController.TasksControllerCreator;
+using TaskListApplication.Server.Exceptions.TaskExceptions;
+using TaskListApplication.Server.Exceptions;
 
 namespace TaskListApplication.Server.Controllers.TasksController
 {
-    [Route("api/[controller]")]
+    [Route("api/tasks")]
     [ApiController]
     public class TasksController : ControllerBase
     {
@@ -22,82 +20,91 @@ namespace TaskListApplication.Server.Controllers.TasksController
             _context = context;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<TaskDto>>> GetTasks()
-        {
-            return await Retriever.GetTasks(_context, t => true);
-        }
-
-        [HttpGet("{id}")]
-        public async Task<ActionResult<TaskDto>> GetTask(string id)
+        [HttpGet("all")]
+        public async Task<ActionResult<IEnumerable<TaskDto>>> GetAllTasks()
         {
             try
             {
-                return await Retriever.GetTaskDto(_context, id);
-            }
-            catch {
-                return NotFound();
-            }
-        }
-
-        [HttpPost]
-        public async Task<ActionResult<TaskDto>> PostTask(TaskDto taskDto)
-        {
-            try
-            {
-                var id = await Creator.AddTask(_context, taskDto);
-
-                return CreatedAtAction(nameof(GetTask), new { id = id }, taskDto);
+                return await GetTasks(_context, t => true);
             }
             catch (Exception e)
             {
-                return BadRequest(e);
+                return BadRequest(new { message = e.Message });
             }
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutTask(string id, TaskDto taskDto)
+        [HttpGet("{taskId}")]
+        public async Task<ActionResult<TaskDto>> GetTaskById(string taskId)
         {
             try
             {
-                await Updater.UpdateTask(_context, id, taskDto);
+                return await GetTaskDto(_context, taskId);
+            }
+            catch (NotFoundException e)
+            {
+                return NotFound(new { message = e.Message });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { message = e.Message });
+            }
+        }
 
+        [HttpPost("create")]
+        public async Task<ActionResult<String>> CreateTask(TaskCreateDto taskCreateDto)
+        {
+            try
+            {
+                var id = await AddTask(_context, taskCreateDto);
+                return CreatedAtAction(nameof(GetTaskById), new { taskId = id }, taskCreateDto);
+            }
+            catch (CreationException e)
+            {
+                return BadRequest(new { message = e.Message });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { message = e.Message });
+            }
+        }
+
+        [HttpPut("update/{taskId}")]
+        public async Task<IActionResult> UpdateTask(string taskId, TaskDto taskDto)
+        {
+            try
+            {
+                await TasksControllerUpdater.UpdateTask(_context, taskId, taskDto);
                 return NoContent();
             }
-            catch (DbUpdateConcurrencyException)
+            catch (NotFoundException e)
             {
-                if (!await Utility.TaskExists(_context, id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return NotFound(new { message = e.Message });
             }
             catch (Exception e)
             {
-                return BadRequest(e);
+                return BadRequest(new { message = e.Message });
             }
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteTask(string id)
+        [HttpDelete("delete/{taskId}")]
+        public async Task<IActionResult> DeleteTask(string taskId)
         {
             try
             {
-                bool deleted = await Deleter.DeleteTask(_context, id);
-
+                bool deleted = await TasksControllerDeleter.DeleteTask(_context, taskId);
                 if (!deleted)
                 {
-                    return BadRequest("Unable to delete task.");
+                    return BadRequest(new { message = "Unable to delete task." });
                 }
-
                 return NoContent();
+            }
+            catch (NotFoundException e)
+            {
+                return NotFound(new { message = e.Message });
             }
             catch (Exception e)
             {
-                return NotFound(e);
+                return BadRequest(new { message = e.Message });
             }
         }
     }

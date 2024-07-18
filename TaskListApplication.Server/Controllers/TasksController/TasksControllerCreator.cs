@@ -1,48 +1,37 @@
 ﻿using TaskListApplication.Server.Controllers.Utilities;
 using TaskListApplication.Server.Data;
 using TaskListApplication.Server.DTOs;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Task = TaskListApplication.Server.Models.Task;
-using static Retriever = TaskListApplication.Server.Controllers.TasksController.TasksControllerRetriever;
+using TaskListApplication.Server.Exceptions;
+using TaskListApplication.Server.Enums;
 
 namespace TaskListApplication.Server.Controllers.TasksController
 {
     public static class TasksControllerCreator
     {
         // task prefix
-        private const string TaskPrefix = "tk";
+        
+        private static readonly TaskTypes TaskType = Enums.TaskTypes.Task;
+        private static readonly string TaskPrefix = TaskTypesExtensions.ToFriendlyString(TaskType);
 
-        private static string FindAvailableId(TaskContext _context)
+        public static async Task<string> AddTask(TaskContext _context, TaskCreateDto taskCreateDto)
         {
-            string id = Utility.CreateId(TaskPrefix);
-            while (Utility.TaskExists(_context, id).Result)
-            {
-                id = Utility.CreateId(TaskPrefix);
-            }
-            return id;
-        }
+            string id = await Utility.FindAvailableId(_context, TaskPrefix, TaskType);
 
-
-        public static async Task<string> AddTask(TaskContext _context, TaskDto taskDto)
-        {
-            string id = FindAvailableId(_context);
-
-            var task = new Task
+            Task task = new()
             {
                 Id = id,
-                Title = taskDto.Title,
-                IsComplete = taskDto.IsComplete,
-                SubTasks = []
+                Title = taskCreateDto.Title,
+                IsComplete = taskCreateDto.IsComplete
             };
 
             _context.Tasks.Add(task);
             await _context.SaveChangesAsync();
 
             // validate new task
-            if (!Utility.TaskExists(_context, id).Result)
+            if (!await Utility.TaskExists(_context, TaskType, id))
             {
-                throw new Exception("Task not created");
+                throw new CreationException(Enums.TaskTypes.Task, id);
             }
 
             return task.Id;

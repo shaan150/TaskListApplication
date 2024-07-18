@@ -1,13 +1,15 @@
 ﻿// Controllers/SubTasksController.cs
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using TaskListApplication.Server.Data;
 using TaskListApplication.Server.DTOs;
-using TaskListApplication.Server.Models;
+using TaskListApplication.Server.Exceptions;
+using TaskListApplication.Server.Exceptions.TaskExceptions;
+using static TaskListApplication.Server.Controllers.SubTasksController.SubTasksControllerCreator;
+using static TaskListApplication.Server.Controllers.SubTasksController.SubTasksControllerRetriever;
 
 namespace TaskListApplication.Server.Controllers.SubTasksController
 {
-    [Route("api/[controller]")]
+    [Route("api/subtasks")]
     [ApiController]
     public class SubTasksController : ControllerBase
     {
@@ -18,100 +20,92 @@ namespace TaskListApplication.Server.Controllers.SubTasksController
             _context = context;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<SubTaskDto>>> GetSubTasks()
+        [HttpGet("all")]
+        public async Task<ActionResult<IEnumerable<SubTaskDto>>> GetAllSubTasks()
         {
-            var subTasks = await _context.SubTasks.ToListAsync();
-            return subTasks.Select(st => new SubTaskDto
+            try
             {
-                Id = st.Id,
-                Title = st.Title,
-                IsComplete = st.IsComplete,
-                TaskId = st.TaskId
-            }).ToList();
+                return await GetSubTasksDto(_context, t => true);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { message = e.Message });
+            }
         }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<SubTaskDto>> GetSubTask(string id)
+        [HttpGet("{subTaskId}")]
+        public async Task<ActionResult<SubTaskDto>> GetSubTaskById(string subTaskId)
         {
-            var subTask = await _context.SubTasks.FindAsync(id);
-
-            if (subTask == null)
+            try
             {
-                return NotFound();
+                return await GetSubTaskDto(_context, subTaskId);
             }
-
-            var subTaskDto = new SubTaskDto
+            catch (NotFoundException e)
             {
-                Id = subTask.Id,
-                Title = subTask.Title,
-                IsComplete = subTask.IsComplete,
-                TaskId = subTask.TaskId
-            };
-
-            return subTaskDto;
+                return NotFound(new { message = e.Message });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { message = e.Message });
+            }
         }
 
-        [HttpPost]
-        public async Task<ActionResult<SubTaskDto>> PostSubTask(SubTaskDto subTaskDto)
+        [HttpPost("create")]
+        public async Task<ActionResult<string>> CreateSubTask(SubTaskCreateDto subTaskCreateDto)
         {
-            // unique id generator for subtask
-
-
-            string id = "st" + Guid.NewGuid().ToString().Substring(0, 8);
-
-
-            var subTask = new SubTask
+            try
             {
-                Title = subTaskDto.Title,
-                IsComplete = subTaskDto.IsComplete,
-                TaskId = subTaskDto.TaskId
-            };
-
-            _context.SubTasks.Add(subTask);
-            await _context.SaveChangesAsync();
-
-            subTaskDto.Id = subTask.Id;
-            return CreatedAtAction(nameof(GetSubTask), new { id = subTask.Id }, subTaskDto);
+                string id = await AddSubTask(_context, subTaskCreateDto);
+                return CreatedAtAction(nameof(GetSubTaskById), new { subTaskId = id }, subTaskCreateDto);
+            }
+            catch (CreationException e)
+            {
+                return BadRequest(new { message = e.Message });
+            }
+            catch (NotFoundException e)
+            {
+                return NotFound(new { message = e.Message });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { message = e.Message });
+            }
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutSubTask(string id, SubTaskDto subTaskDto)
+        [HttpPut("update/{subTaskId}")]
+        public async Task<IActionResult> UpdateSubTask(string subTaskId, SubTaskDto subTaskDto)
         {
-            if (id != subTaskDto.Id)
+            try
             {
-                return BadRequest();
+                await SubTasksControllerUpdater.UpdateSubTask(_context, subTaskDto);
+                return NoContent();
             }
-
-            var subTask = await _context.SubTasks.FindAsync(id);
-            if (subTask == null)
+            catch (NotFoundException e)
             {
-                return NotFound();
+                return NotFound(new { message = e.Message });
             }
-
-            subTask.Title = subTaskDto.Title;
-            subTask.IsComplete = subTaskDto.IsComplete;
-            subTask.TaskId = subTaskDto.TaskId;
-
-            _context.Entry(subTask).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            catch (Exception e)
+            {
+                return BadRequest(new { message = e.Message });
+            }
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteSubTask(string id)
+        [HttpDelete("delete/{subTaskId}")]
+        public async Task<IActionResult> DeleteSubTask(string subTaskId)
         {
-            var subTask = await _context.SubTasks.FindAsync(id);
-            if (subTask == null)
+            try
             {
-                return NotFound();
+                await SubTasksControllerDeleter.DeleteSubTask(_context, subTaskId);
+                return NoContent();
             }
-
-            _context.SubTasks.Remove(subTask);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            catch (NotFoundException e)
+            {
+                return NotFound(new { message = e.Message });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { message = e.Message });
+            }
         }
     }
 }

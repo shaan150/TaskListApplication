@@ -14,6 +14,13 @@ builder.Services.AddDbContext<TaskContext>(options =>
 
 var app = builder.Build();
 
+// Apply migrations automatically on startup
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<TaskContext>();
+    dbContext.Database.Migrate();
+}
+
 app.UseDefaultFiles();
 app.UseStaticFiles();
 

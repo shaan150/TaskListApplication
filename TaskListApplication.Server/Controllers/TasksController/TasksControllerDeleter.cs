@@ -1,5 +1,8 @@
 ﻿using TaskListApplication.Server.Data;
-using static Retriever = TaskListApplication.Server.Controllers.TasksController.TasksControllerRetriever;
+using TaskListApplication.Server.Enums;
+using TaskListApplication.Server.Exceptions.TaskExceptions;
+using Task = TaskListApplication.Server.Models.Task;
+using static TaskListApplication.Server.Controllers.TasksController.TasksControllerRetriever;
 
 namespace TaskListApplication.Server.Controllers.TasksController
 {
@@ -10,18 +13,25 @@ namespace TaskListApplication.Server.Controllers.TasksController
         {
 
             // check if task exists
-            if (!await Utilities.Utility.TaskExists(_context, id))
+            if (!await Utilities.Utility.TaskExists(_context, TaskTypes.Task, id))
             {
-                throw new Exception("Task not found");
+                throw new NotFoundException(Enums.TaskTypes.Task, id);
             }
 
-            var task = await Retriever.GetTask(_context, id);
+            Task task = await GetTask(_context, id);
+
+            // check if there are subtasks
+            if (task.SubTasks.Count > 0)
+            {
+                throw new HasSubTasksException(id);
+            }
+
 
             _context.Tasks.Remove(task);
             await _context.SaveChangesAsync();
 
             // check if task was deleted
-            if (!await Utilities.Utility.TaskExists(_context, id))
+            if (!await Utilities.Utility.TaskExists(_context, TaskTypes.Task, id))
             {
                 return false;
             }

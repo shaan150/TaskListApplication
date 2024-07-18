@@ -1,10 +1,9 @@
 ﻿namespace TaskListApplication.Server.Models
 {
-    public class Task
+    public class Task : BaseTask
     {
-        public required string Id { get; set; }
-        public string Title { get; set; }
-        public bool IsComplete { get; set; }
-        public List<SubTask> SubTasks { get; set; }
+        private List<SubTask> subTasks = new List<SubTask>();
+
+        public List<SubTask> SubTasks { get => subTasks; set => subTasks = value; }
     }
 }

@@ -24,7 +24,7 @@ namespace TaskListApplication.Server.Controllers.SubTasksController
                 throw new NotFoundException(Enums.TaskTypes.Task, taskId);
             }
 
-            string id = await Utility.FindAvailableId(_context, SubTasksPrefix, TaskType);
+            string id = await UtilityWrapper.FindAvailableIdFunc(_context, SubTasksPrefix, TaskType);
 
             SubTask subTask = new()
             {
@@ -38,7 +38,7 @@ namespace TaskListApplication.Server.Controllers.SubTasksController
             await _context.SaveChangesAsync();
 
             // validate new subtask
-            if (!await Utility.TaskExists(_context, TaskType, id))
+            if (!await UtilityWrapper.TaskExistsFunc(_context, TaskType, id))
             {
                 throw new CreationException(TaskType, id);
             }

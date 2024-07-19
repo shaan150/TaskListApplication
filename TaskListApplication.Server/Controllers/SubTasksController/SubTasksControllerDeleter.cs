@@ -3,7 +3,7 @@ using TaskListApplication.Server.Data;
 using TaskListApplication.Server.Enums;
 using TaskListApplication.Server.Exceptions.TaskExceptions;
 using TaskListApplication.Server.Models;
-using static TaskListApplication.Server.Controllers.Utilities.Utility;
+using static TaskListApplication.Server.Controllers.Utilities.UtilityWrapper;
 
 namespace TaskListApplication.Server.Controllers.SubTasksController
 {
@@ -16,7 +16,7 @@ namespace TaskListApplication.Server.Controllers.SubTasksController
             _context.SubTasks.Remove(subTask);
             await _context.SaveChangesAsync();
 
-            bool exists = await TaskExists(_context, TaskTypes.SubTask, id);
+            bool exists = await TaskExistsFunc(_context, TaskTypes.SubTask, id);
 
             return !exists;
 

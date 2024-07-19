@@ -23,15 +23,13 @@ namespace TaskListApplication.Server.Controllers.TasksController
                 return new List<TaskDto>();
             }
 
-            byte tasksCount = BitConverter.GetBytes(tasks.Count)[0];
 
-
-            return tasks.Select(t => ConvertTaskToDto(t, tasksCount))
+            return tasks.Select(t => ConvertTaskToDto(t))
                 .Where(filter)
                 .ToList();
         }
 
-        private static TaskDto ConvertTaskToDto(Task t, byte tasksCount)
+        private static TaskDto ConvertTaskToDto(Task t)
         {
             return new TaskDto
             {
@@ -41,7 +39,7 @@ namespace TaskListApplication.Server.Controllers.TasksController
                 SubTasks = t.SubTasks
                             .Select(ConvertSubTaskToDto)
                             .ToList(),
-                SubTasksCount = tasksCount
+                SubTasksCount = t.SubTasks.Count
             };
         }
 
@@ -62,9 +60,9 @@ namespace TaskListApplication.Server.Controllers.TasksController
         {
             Task task = await GetTask(context, id);
 
-            byte subTasksCount = BitConverter.GetBytes(task.SubTasks.Count)[0];
+            int subTasksCount = task.SubTasks.Count;
 
-            return ConvertTaskToDto(task, subTasksCount);
+            return ConvertTaskToDto(task);
         }
     }
 }

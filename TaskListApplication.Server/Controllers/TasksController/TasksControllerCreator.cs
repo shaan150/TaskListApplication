@@ -16,7 +16,7 @@ namespace TaskListApplication.Server.Controllers.TasksController
 
         public static async Task<string> AddTask(TaskContext _context, TaskCreateDto taskCreateDto)
         {
-            string id = await Utility.FindAvailableId(_context, TaskPrefix, TaskType);
+            string id = await UtilityWrapper.FindAvailableIdFunc(_context, TaskPrefix, TaskType);
 
             Task task = new()
             {
@@ -29,7 +29,7 @@ namespace TaskListApplication.Server.Controllers.TasksController
             await _context.SaveChangesAsync();
 
             // validate new task
-            if (!await Utility.TaskExists(_context, TaskType, id))
+            if (!await UtilityWrapper.TaskExistsFunc(_context, TaskType, id))
             {
                 throw new CreationException(Enums.TaskTypes.Task, id);
             }

@@ -1,0 +1,69 @@
+.modal {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    right: auto;
+    bottom: auto;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    width: 80%;
+    max-width: 600px;
+    font-family: 'Arial', sans-serif;
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.75);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.modal h2 {
+    margin-top: 0;
+    font-size: 1.5em;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+.modal label {
+    display: block;
+    margin: 10px 0;
+    font-weight: bold;
+}
+
+.modal input[type="text"],
+.modal input[type="checkbox"] {
+    margin-top: 5px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    width: calc(100% - 22px);
+}
+
+.modal input[type="checkbox"] {
+    width: auto;
+    margin-left: 0;
+}
+
+
+.modal .subtask-list {
+    margin-top: 30px;
+}
+
+.modal .subtask-list-item {
+    margin-bottom: 20px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    color: #333;
+    align-content: center;
+}

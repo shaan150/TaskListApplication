@@ -1,0 +1,15 @@
+.subtask-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f4f5f7;
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 300px;
+    color: black;
+}
+
+.subtask-card label {
+    margin-right: 10px;
+}
+

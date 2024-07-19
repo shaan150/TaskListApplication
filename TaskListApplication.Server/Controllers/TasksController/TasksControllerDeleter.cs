@@ -1,5 +1,6 @@
 ﻿using TaskListApplication.Server.Data;
 using TaskListApplication.Server.Enums;
+using TaskListApplication.Server.Controllers.Utilities;
 using TaskListApplication.Server.Exceptions.TaskExceptions;
 using Task = TaskListApplication.Server.Models.Task;
 using static TaskListApplication.Server.Controllers.TasksController.TasksControllerRetriever;
@@ -13,7 +14,7 @@ namespace TaskListApplication.Server.Controllers.TasksController
         {
 
             // check if task exists
-            if (!await Utilities.Utility.TaskExists(_context, TaskTypes.Task, id))
+            if (!await UtilityWrapper.TaskExistsFunc(_context, TaskTypes.Task, id))
             {
                 throw new NotFoundException(Enums.TaskTypes.Task, id);
             }
@@ -31,12 +32,12 @@ namespace TaskListApplication.Server.Controllers.TasksController
             await _context.SaveChangesAsync();
 
             // check if task was deleted
-            if (!await Utilities.Utility.TaskExists(_context, TaskTypes.Task, id))
+            if (!await UtilityWrapper.TaskExistsFunc(_context, TaskTypes.Task, id))
             {
-                return false;
+                return true;
             }
 
-            return true;
+            return false;
         }
     }
 }

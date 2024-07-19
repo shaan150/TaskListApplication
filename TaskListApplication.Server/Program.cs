@@ -12,6 +12,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<TaskContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("TaskContext")));
 
+
 var app = builder.Build();
 
 // Apply migrations automatically on startup
@@ -20,7 +21,7 @@ using (var scope = app.Services.CreateScope())
     var dbContext = scope.ServiceProvider.GetRequiredService<TaskContext>();
     dbContext.Database.Migrate();
 }
-
+app.UseCors(options => options.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
@@ -29,6 +30,7 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseDeveloperExceptionPage();
 }
 
 app.UseHttpsRedirection();

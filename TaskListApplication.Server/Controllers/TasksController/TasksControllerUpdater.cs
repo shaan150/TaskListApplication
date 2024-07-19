@@ -22,6 +22,7 @@ namespace TaskListApplication.Server.Controllers.TasksController
 
             Task task = await GetTask(_context, id);
 
+
             task.Title = taskDto.Title;
             task.IsComplete = taskDto.IsComplete;
 
@@ -32,9 +33,6 @@ namespace TaskListApplication.Server.Controllers.TasksController
 
             // get updated task
             Task updatedTask = await GetTask(_context, id);
-
-            updatedTask.Title = updatedTask.Title;
-            updatedTask.IsComplete = updatedTask.IsComplete;
             
             if (task.Title != updatedTask.Title || task.IsComplete != updatedTask.IsComplete)
             {
